@@ -1,4 +1,5 @@
 import qualified Data.IntMap as IM
+import Control.Monad
 
 data GameOutcome = Win | Lose deriving Eq
 
@@ -57,10 +58,20 @@ getOutcome m s =
 buildMap :: IM.IntMap GameOutcome
 buildMap =
   let
-    startMap = IM.singleton 0 Win
-    allShapes = [[a,b,c] | a<-[0..maxBarLen-1], b<-[0..maxBarLen-1], c<-[0..maxBarLen-1], a>=b, b>=c]
-    
-    --...
+    startMap = IM.singleton 0 Win -- construct IntMap with single entry
+    allShapes = [[a,b,c] | a<-[0..maxBarLen-1], b<-[0..maxBarLen-1], c<-[0..maxBarLen-1], a>=b, b>=c, a>0]
+  in
+    foldl (\accMap shape -> IM.insert (shapeToNum shape) (getOutcome accMap shape) accMap) startMap allShapes
+
+solve :: [Shape] -> [String]
+solve shapes =
+  let
+    m = buildMap
+  in
+    map (show.getOutcome m) shapes
 
 main = do
-  putStrLn $ unlines . map show $ getSubshapes [3,2,1]
+  n <- readLn
+  tmp <- replicateM n getLine
+  let shapes = fmap (map read.words) tmp
+  putStr $ unlines $ solve shapes
